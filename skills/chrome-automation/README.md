@@ -2,72 +2,132 @@
 
 ## Installation
 
-To install the Chrome Automation Skill, follow these steps:
-
-1. Ensure you have Python 3.x installed on your machine.
-2. Install the necessary dependencies:
-   ```bash
-   pip install selenium
-   ```
-3. Clone the repository:
-   ```bash
-   git clone https://github.com/ysaisme/ysa-skills.git
-   ```
-4. Navigate to the `chrome_automation_skill` directory:
-   ```bash
-   cd ysa-skills/chrome_automation_skill
-   ```
-
-## Usage Examples
-
-Here are some basic usage examples for the Chrome Automation Skill:
-
-### Example 1: Open a Website
-
-```python
-from chrome_automation_skill import ChromeAutomation
-
-automation = ChromeAutomation()
-automation.open_website('https://www.example.com')
+```bash
+pip install -r requirements.txt
 ```
 
-### Example 2: Fill a Form
+## Quick Start
 
 ```python
-automation.fill_form({
+from chrome_skill import ChromeSkill
+
+# Create instance
+skill = ChromeSkill(headless=False)
+
+# Open a webpage
+skill.open_page("https://www.example.com")
+
+# Fill a form
+skill.fill_form({
     'username': 'test_user',
     'password': 'secure_password'
 })
+
+# Close browser
+skill.close()
 ```
 
-## Method Descriptions
+## Core Methods
 
-### `open_website(url)`
+### Navigation
+- `open_page(url)` - Open a webpage
+- `get_page_title()` - Get current page title
+- `get_page_url()` - Get current URL
+- `get_page_source()` - Get HTML source
 
-Opens the specified URL in Chrome.
+### Interaction
+- `click_element(selector)` - Click an element
+- `input_text(selector, text)` - Type text in a field
+- `fill_form(fields)` - Fill multiple form fields
+- `submit_form(selector)` - Submit a form
+- `scroll(direction, amount)` - Scroll page
+- `scroll_to_element(selector)` - Scroll to element
 
-- **Parameters**:
-  - `url` (str): The URL of the website to open.
+### Data & Content
+- `take_screenshot(filename)` - Capture page screenshot
+- `extract_data(selectors)` - Extract data using CSS selectors
+- `execute_javascript(script)` - Run JavaScript code
+- `wait_for_element(selector, timeout)` - Wait for element presence
 
-### `fill_form(data)`
+### Window/Frame Management
+- `switch_to_frame(selector)` - Switch to iframe
+- `switch_to_default_content()` - Return to main page
+- `close()` - Close browser and cleanup
 
-Fills out a form with the provided data.
+## Usage Examples
 
-- **Parameters**:
-  - `data` (dict): A dictionary containing as key-value pairs where keys are the form field names.
+### Example 1: Web Search
+
+```python
+from chrome_skill import ChromeSkill
+
+skill = ChromeSkill(headless=False)
+skill.open_page("https://www.google.com")
+skill.input_text('input[name="q"]', "Python Selenium")
+skill.submit_form()
+skill.wait_for_element('h3', timeout=10)
+results = skill.extract_data({'titles': 'h3'})
+print(results)
+skill.close()
+```
+
+### Example 2: Take Screenshot
+
+```python
+skill = ChromeSkill(headless=True)
+skill.open_page("https://www.example.com")
+skill.take_screenshot("example.png")
+skill.close()
+```
+
+### Example 3: Extract Data
+
+```python
+skill = ChromeSkill(headless=True)
+skill.open_page("https://news.ycombinator.com")
+data = skill.extract_data({
+    'titles': '.title a',
+    'scores': '.score'
+})
+print(f"Found {len(data['titles'])} articles")
+skill.close()
+```
+
+## Selectors
+
+The skill supports all CSS selectors:
+- **ID**: `#my-id`
+- **Class**: `.my-class`
+- **Tag**: `div`, `a`, `input`
+- **Attribute**: `input[name="email"]`
+- **Descendant**: `div.container`
+- **Child**: `ul > li`
 
 ## Best Practices
 
-- Always ensure the Chrome driver is up to date with your version of Chrome.
-- Use explicit waits to handle loading times instead of implicit waits for more controlled automation flow.
-- Utilize a virtual environment for managing dependencies related to this project.
+1. **Use explicit waits**: Always wait for elements before interacting
+2. **Headless mode**: Use `headless=True` for production (50-70% faster)
+3. **Close browser**: Always call `close()` to cleanup resources
+4. **Use context managers**: Consider wrapping in try/finally
 
-## Troubleshooting Guide
+```python
+skill = ChromeSkill()
+try:
+    skill.open_page("https://example.com")
+    # ... your automation code
+finally:
+    skill.close()
+```
 
-- **Issue**: Chrome driver not found
-  - **Solution**: Ensure that the Chrome driver is installed and its path is set correctly in the system environment variables.
+## Troubleshooting
 
-- **Issue**: Automation fails due to element not found
-  - **Solution**: Use explicit waits or check the visibility of elements before interacting with them.
+| Issue | Solution |
+|-------|----------|
+| ChromeDriver not found | `webdriver-manager` handles this automatically |
+| Element not found | Use `wait_for_element()` before interacting |
+| Page not loading | Increase wait timeout or check network |
+| Headless mode issues | Try `headless=False` for debugging |
 
-For more specific issues, please refer to the official Selenium documentation or contact support.
+## License
+
+MIT

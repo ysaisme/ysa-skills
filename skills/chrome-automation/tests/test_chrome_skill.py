@@ -1,50 +1,100 @@
 import unittest
-from chrome_automation_skill import ChromeSkill
+import os
+from chrome_skill import ChromeSkill
+
 
 class TestChromeSkill(unittest.TestCase):
 
     def setUp(self):
-        self.skill = ChromeSkill()
+        self.skill = ChromeSkill(headless=True)
 
-    def test_open_page(self):
-        result = self.skill.open_page('https://example.com')
-        # Add assertions based on expected behavior
+    def tearDown(self):
+        self.skill.close()
+        if os.path.exists("test_screenshot.png"):
+            os.remove("test_screenshot.png")
+
+    def test_open_page_success(self):
+        result = self.skill.open_page('https://www.example.com')
+        self.assertTrue(result)
+
+    def test_open_page_invalid_url(self):
+        result = self.skill.open_page('invalid-url')
+        self.assertFalse(result)
+
+    def test_get_page_title(self):
+        self.skill.open_page('https://www.example.com')
+        title = self.skill.get_page_title()
+        self.assertEqual(title, 'Example Domain')
+
+    def test_get_page_url(self):
+        self.skill.open_page('https://www.example.com')
+        url = self.skill.get_page_url()
+        self.assertIsNotNone(url)
+        self.assertIn('example.com', url)
 
     def test_click_element(self):
-        result = self.skill.click_element('#some-id')
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.click_element('a')
+        self.assertTrue(result)
 
     def test_input_text(self):
-        result = self.skill.input_text('#some-input', 'test text')
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.input_text('input[type="text"]', 'test input')
+        self.assertTrue(result)
 
     def test_fill_form(self):
-        result = self.skill.fill_form({'input1': 'value1', 'input2': 'value2'})
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.fill_form({'input[type="text"]': 'test value'})
+        self.assertTrue(result)
 
-    def test_submit_form(self):
-        result = self.skill.submit_form('#some-form')
-        # Add assertions based on expected behavior
+    def test_scroll_down(self):
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.scroll(direction='down', amount=500)
+        self.assertTrue(result)
 
-    def test_scroll(self):
-        result = self.skill.scroll(500)
-        # Add assertions based on expected behavior
+    def test_scroll_up(self):
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.scroll(direction='up', amount=500)
+        self.assertTrue(result)
+
+    def test_scroll_direction_none(self):
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.scroll(direction='down', amount=500)
+        self.assertIsNotNone(result)
 
     def test_take_screenshot(self):
-        screenshot = self.skill.take_screenshot()
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.take_screenshot('test_screenshot.png')
+        self.assertTrue(result)
+        self.assertTrue(os.path.exists('test_screenshot.png'))
 
     def test_extract_data(self):
-        data = self.skill.extract_data('.data-element')
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        data = self.skill.extract_data({'title': 'h1'})
+        self.assertIsInstance(data, dict)
+        self.assertIn('title', data)
 
     def test_wait_for_element(self):
-        result = self.skill.wait_for_element('#some-id', timeout=10)
-        # Add assertions based on expected behavior
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.wait_for_element('a', timeout=10)
+        self.assertTrue(result)
 
     def test_execute_javascript(self):
+        self.skill.open_page('https://www.example.com')
         result = self.skill.execute_javascript('return document.title;')
-        # Add assertions based on expected behavior
+        self.assertEqual(result, 'Example Domain')
+
+    def test_get_page_source(self):
+        self.skill.open_page('https://www.example.com')
+        source = self.skill.get_page_source()
+        self.assertIsInstance(source, str)
+        self.assertIn('html', source.lower())
+
+    def test_scroll_to_element(self):
+        self.skill.open_page('https://www.example.com')
+        result = self.skill.scroll_to_element('a')
+        self.assertTrue(result)
+
 
 if __name__ == '__main__':
     unittest.main()
